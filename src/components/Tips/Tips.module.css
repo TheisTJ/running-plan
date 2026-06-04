@@ -3,12 +3,39 @@
   padding-top: 40px;
 }
 
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0 0 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 .kicker {
   font-size: 11px;
   letter-spacing: 4px;
   color: var(--accent);
   text-transform: uppercase;
-  margin-bottom: 20px;
+}
+
+.chevron {
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
 }
 
 .grid {

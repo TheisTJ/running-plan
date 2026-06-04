@@ -1,0 +1,25 @@
+# Optional: exposes the Service via an ingress controller (e.g. nginx-ingress).
+# Requires an ingress controller installed in the cluster.
+#   minikube addons enable ingress
+# Then add a hosts entry mapping the host below to your cluster IP
+# (`minikube ip`), e.g.  "<minikube-ip>  running-plan.local".
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: running-plan
+  namespace: running-plan
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: running-plan.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: running-plan
+                port:
+                  number: 80

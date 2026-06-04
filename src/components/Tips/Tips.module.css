@@ -1,0 +1,49 @@
+.section {
+  border-top: 1px solid var(--border-faint);
+  padding-top: 40px;
+}
+
+.kicker {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-faint);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.icon {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+}
+
+.body {
+  font-size: 13px;
+  color: var(--text-dimmer);
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

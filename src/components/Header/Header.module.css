@@ -1,0 +1,84 @@
+.header {
+  background: linear-gradient(135deg, var(--bg-header) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 32px 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.glow {
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 53, 0.15) 0%,
+    transparent 70%
+  );
+}
+
+.inner {
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.kicker {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.titleAccent {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.subtitle {
+  margin-top: 16px;
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.progress {
+  margin-top: 28px;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-dimmer);
+  margin-bottom: 8px;
+}
+
+.progressPct {
+  color: var(--accent);
+}
+
+.progressTrack {
+  height: 4px;
+  background: #1e1e1e;
+  border-radius: 2px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}

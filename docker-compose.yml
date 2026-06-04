@@ -1,0 +1,9 @@
+# Convenience wrapper for a one-command local production run:
+#   docker compose up --build   →   http://localhost:8080
+services:
+  web:
+    build: .
+    image: running-plan:latest
+    ports:
+      - "8080:80"
+    restart: unless-stopped

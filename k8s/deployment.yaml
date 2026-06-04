@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: running-plan
+  namespace: running-plan
+  labels:
+    app: running-plan
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: running-plan
+  template:
+    metadata:
+      labels:
+        app: running-plan
+    spec:
+      containers:
+        - name: web
+          # Build & load this image into your cluster first, e.g.:
+          #   docker build -t running-plan:latest .
+          #   minikube image load running-plan:latest   (or: kind load docker-image running-plan:latest)
+          image: running-plan:latest
+          # `Never`/`IfNotPresent` avoids trying to pull a non-existent
+          # remote image when using a locally built one.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          # The container only serves static files, so it needs very little.
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 15

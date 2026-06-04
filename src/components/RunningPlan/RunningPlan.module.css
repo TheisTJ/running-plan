@@ -1,0 +1,32 @@
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 32px 64px;
+}
+
+.nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 48px;
+}
+
+.navButton {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.navButton:disabled {
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}

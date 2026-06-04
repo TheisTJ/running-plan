@@ -5,6 +5,7 @@ interface WeekSelectorProps {
   weeks: Week[];
   activeWeek: number;
   onSelect: (weekIdx: number) => void;
+  onToggleWeek: (weekIdx: number) => void;
   isWeekDone: (weekIdx: number) => boolean;
 }
 
@@ -12,6 +13,7 @@ export function WeekSelector({
   weeks,
   activeWeek,
   onSelect,
+  onToggleWeek,
   isWeekDone,
 }: WeekSelectorProps) {
   return (
@@ -31,7 +33,15 @@ export function WeekSelector({
             key={i}
             className={className}
             aria-pressed={active}
-            onClick={() => onSelect(i)}
+            title="Click to view · Ctrl/Cmd+click to toggle the whole week"
+            onClick={(e) => {
+              if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                onToggleWeek(i);
+              } else {
+                onSelect(i);
+              }
+            }}
           >
             {done ? "✓ " : ""}W{i + 1}
           </button>

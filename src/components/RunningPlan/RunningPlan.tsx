@@ -11,7 +11,7 @@ import styles from "./RunningPlan.module.css";
 const LAST_WEEK = weeks.length - 1;
 
 export function RunningPlan() {
-  const { isDone, toggleSession, completedCount } = useProgress();
+  const { isDone, toggleSession, setWeekDone, completedCount } = useProgress();
   const [activeWeek, setActiveWeek] = useState(0);
 
   const totalSessions = useMemo(
@@ -22,6 +22,10 @@ export function RunningPlan() {
 
   const isWeekDone = (weekIdx: number) =>
     weeks[weekIdx].sessions.every((_, si) => isDone(weekIdx, si));
+
+  // Flip an entire week: complete it if not already done, otherwise clear it.
+  const toggleWeek = (weekIdx: number) =>
+    setWeekDone(weekIdx, weeks[weekIdx].sessions.length, !isWeekDone(weekIdx));
 
   return (
     <div className={styles.page}>
@@ -36,6 +40,7 @@ export function RunningPlan() {
           weeks={weeks}
           activeWeek={activeWeek}
           onSelect={setActiveWeek}
+          onToggleWeek={toggleWeek}
           isWeekDone={isWeekDone}
         />
 
@@ -44,6 +49,7 @@ export function RunningPlan() {
           weekIdx={activeWeek}
           isDone={isDone}
           onToggle={toggleSession}
+          onToggleAll={() => toggleWeek(activeWeek)}
           weekCompleted={isWeekDone(activeWeek)}
         />
 

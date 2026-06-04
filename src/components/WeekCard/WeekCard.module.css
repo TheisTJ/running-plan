@@ -27,11 +27,37 @@
   font-weight: 400;
 }
 
-.badge {
-  background: rgba(76, 175, 80, 0.15);
-  color: var(--success);
-  border: 1px solid rgba(76, 175, 80, 0.3);
+.toggleAll {
+  flex-shrink: 0;
   border-radius: 20px;
   padding: 6px 14px;
   font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  /* Incomplete (default): subtle outline "Check all" button. */
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.toggleAll:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.toggleAll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Completed: green status pill that doubles as the clear-all control. */
+.complete {
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--success);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.complete:hover {
+  border-color: rgba(76, 175, 80, 0.6);
+  color: var(--success);
 }

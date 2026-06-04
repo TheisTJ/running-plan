@@ -28,6 +28,8 @@ function loadInitial(): CompletedMap {
 export interface UseProgress {
   completed: CompletedMap;
   toggleSession: (weekIdx: number, sessionIdx: number) => void;
+  /** Mark every session in a week done (or not done) in one update. */
+  setWeekDone: (weekIdx: number, sessionCount: number, done: boolean) => void;
   isDone: (weekIdx: number, sessionIdx: number) => boolean;
   completedCount: number;
 }
@@ -52,6 +54,19 @@ export function useProgress(): UseProgress {
     setCompleted((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
+  const setWeekDone = useCallback(
+    (weekIdx: number, sessionCount: number, done: boolean) => {
+      setCompleted((prev) => {
+        const next = { ...prev };
+        for (let i = 0; i < sessionCount; i++) {
+          next[sessionKey(weekIdx, i)] = done;
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
   const isDone = useCallback(
     (weekIdx: number, sessionIdx: number) =>
       !!completed[sessionKey(weekIdx, sessionIdx)],
@@ -63,5 +78,5 @@ export function useProgress(): UseProgress {
     [completed],
   );
 
-  return { completed, toggleSession, isDone, completedCount };
+  return { completed, toggleSession, setWeekDone, isDone, completedCount };
 }

@@ -23,6 +23,19 @@ describe("useProgress", () => {
     expect(result.current.completedCount).toBe(0);
   });
 
+  it("marks and clears a whole week with setWeekDone", () => {
+    const { result } = renderHook(() => useProgress());
+
+    act(() => result.current.setWeekDone(3, 3, true));
+    expect(result.current.isDone(3, 0)).toBe(true);
+    expect(result.current.isDone(3, 1)).toBe(true);
+    expect(result.current.isDone(3, 2)).toBe(true);
+    expect(result.current.completedCount).toBe(3);
+
+    act(() => result.current.setWeekDone(3, 3, false));
+    expect(result.current.completedCount).toBe(0);
+  });
+
   it("persists completed sessions to localStorage", () => {
     const { result } = renderHook(() => useProgress());
     act(() => result.current.toggleSession(0, 0));

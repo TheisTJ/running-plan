@@ -7,6 +7,7 @@ interface WeekCardProps {
   weekIdx: number;
   isDone: (weekIdx: number, sessionIdx: number) => boolean;
   onToggle: (weekIdx: number, sessionIdx: number) => void;
+  onToggleAll: () => void;
   weekCompleted: boolean;
 }
 
@@ -15,8 +16,13 @@ export function WeekCard({
   weekIdx,
   isDone,
   onToggle,
+  onToggleAll,
   weekCompleted,
 }: WeekCardProps) {
+  const toggleClass = [styles.toggleAll, weekCompleted ? styles.complete : ""]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div className={styles.card}>
       <div className={styles.head}>
@@ -24,7 +30,19 @@ export function WeekCard({
           <div className={styles.kicker}>Week {week.week}</div>
           <div className={styles.goal}>{week.goal}</div>
         </div>
-        {weekCompleted && <div className={styles.badge}>✓ Complete</div>}
+        <button
+          type="button"
+          className={toggleClass}
+          aria-pressed={weekCompleted}
+          aria-label={
+            weekCompleted
+              ? `Clear all sessions in week ${week.week}`
+              : `Mark all sessions in week ${week.week} complete`
+          }
+          onClick={onToggleAll}
+        >
+          {weekCompleted ? "✓ Complete" : "Check all"}
+        </button>
       </div>
 
       {week.sessions.map((session, i) => (

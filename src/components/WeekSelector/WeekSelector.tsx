@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { Week } from "../../types";
 import styles from "./WeekSelector.module.css";
 
@@ -16,6 +17,13 @@ export function WeekSelector({
   onToggleWeek,
   isWeekDone,
 }: WeekSelectorProps) {
+  // Keep the active pill in view — the start week can auto-jump to a later
+  // week that sits off-screen in the horizontal pill row.
+  const activeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    activeRef.current?.scrollIntoView?.({ inline: "center", block: "nearest" });
+  }, [activeWeek]);
+
   return (
     <div className={styles.selector}>
       {weeks.map((_, i) => {
@@ -31,6 +39,7 @@ export function WeekSelector({
         return (
           <button
             key={i}
+            ref={active ? activeRef : undefined}
             className={className}
             aria-pressed={active}
             title="Click to view · Ctrl/Cmd+click to toggle the whole week"

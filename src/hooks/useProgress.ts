@@ -17,6 +17,25 @@ export function sessionKey(weekIdx: number, sessionIdx: number): string {
   return `${weekIdx}-${sessionIdx}`;
 }
 
+/**
+ * The week to resume on: the first week that isn't fully complete, or the last
+ * week if every session is done. `sessionCounts[w]` is the number of sessions
+ * in week `w`.
+ */
+export function firstUnfinishedWeek(
+  sessionCounts: number[],
+  completed: CompletedMap,
+): number {
+  for (let w = 0; w < sessionCounts.length; w++) {
+    const allDone = Array.from(
+      { length: sessionCounts[w] },
+      (_, s) => completed[sessionKey(w, s)],
+    ).every(Boolean);
+    if (!allDone) return w;
+  }
+  return Math.max(0, sessionCounts.length - 1);
+}
+
 function loadInitial(): CompletedMap {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

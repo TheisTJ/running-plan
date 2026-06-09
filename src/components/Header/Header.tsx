@@ -37,6 +37,13 @@ export function Header({
               className={styles.progressFill}
               style={{ width: `${progressPct}%` }}
             />
+            <span
+              className={styles.runner}
+              style={{ left: `${progressPct}%` }}
+              aria-hidden="true"
+            >
+              🏃
+            </span>
           </div>
         </div>
       </div>

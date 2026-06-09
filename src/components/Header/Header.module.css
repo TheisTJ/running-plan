@@ -71,6 +71,7 @@
 }
 
 .progressTrack {
+  position: relative;
   height: 4px;
   background: #1e1e1e;
   border-radius: 2px;
@@ -81,4 +82,14 @@
   background: linear-gradient(90deg, var(--accent), var(--accent-light));
   border-radius: 2px;
   transition: width 0.4s ease;
+}
+
+.runner {
+  position: absolute;
+  bottom: 0;
+  transform: translateX(-50%) scaleX(-1);
+  font-size: 18px;
+  line-height: 1;
+  pointer-events: none;
+  transition: left 0.4s ease;
 }

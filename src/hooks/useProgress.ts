@@ -1,9 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PROGRESS_TABLE, supabase } from "../lib/supabase";
+import { useSyncCode } from "./useSyncCode";
 
 const STORAGE_KEY = "running-plan:progress";
 
+/** Debounce window before pushing a user change to the remote. */
+const PUSH_DELAY_MS = 600;
+
 /** Map of `"${weekIdx}-${sessionIdx}"` → completed?. */
 export type CompletedMap = Record<string, boolean>;
+
+/** Where the user's progress is currently being kept. */
+export type SyncStatus = "local" | "syncing" | "synced" | "offline";
 
 /** Build the storage key for a given week/session index pair. */
 export function sessionKey(weekIdx: number, sessionIdx: number): string {
@@ -32,15 +40,46 @@ export interface UseProgress {
   setWeekDone: (weekIdx: number, sessionCount: number, done: boolean) => void;
   isDone: (weekIdx: number, sessionIdx: number) => boolean;
   completedCount: number;
+  /** This browser's sync code (also the key into the remote store). */
+  syncCode: string;
+  /** Adopt another device's sync code to share its progress. */
+  setSyncCode: (code: string) => void;
+  /** Where progress is currently kept (for UI feedback). */
+  syncStatus: SyncStatus;
 }
 
 /**
- * Tracks which sessions are completed, persisting to localStorage so progress
- * survives a page reload.
+ * Tracks which sessions are completed. Always persists to localStorage so
+ * progress survives a reload offline; when Supabase is configured, it also
+ * syncs to a remote row keyed by the sync code, so progress follows the user
+ * across devices. localStorage is the source of truth when offline / unconfigured.
  */
 export function useProgress(): UseProgress {
   const [completed, setCompleted] = useState<CompletedMap>(loadInitial);
+  const { syncCode, setSyncCode } = useSyncCode();
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(
+    supabase ? "syncing" : "local",
+  );
 
+  // Refs let the stable pull/push callbacks read the latest values without
+  // being torn down and recreated on every change.
+  const syncCodeRef = useRef(syncCode);
+  const completedRef = useRef(completed);
+  useEffect(() => {
+    syncCodeRef.current = syncCode;
+  }, [syncCode]);
+  useEffect(() => {
+    completedRef.current = completed;
+  }, [completed]);
+
+  // True when the last state change came from a remote pull, so the push effect
+  // below knows not to echo it straight back to the server.
+  const remoteApplied = useRef(false);
+  // Skip the very first push (mount value is not a user action) so a slow pull
+  // can't be overwritten by stale local state.
+  const skipFirstPush = useRef(true);
+
+  // Always cache locally — offline resilience + the no-Supabase fallback.
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
@@ -48,6 +87,85 @@ export function useProgress(): UseProgress {
       // Storage may be full or disabled (e.g. private mode) — ignore.
     }
   }, [completed]);
+
+  const push = useCallback(async (map: CompletedMap) => {
+    if (!supabase) return;
+    setSyncStatus("syncing");
+    try {
+      const { error } = await supabase.from(PROGRESS_TABLE).upsert({
+        id: syncCodeRef.current,
+        data: map,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+      setSyncStatus("synced");
+    } catch {
+      // Network/permission failure — keep using localStorage, retry on next change.
+      setSyncStatus("offline");
+    }
+  }, []);
+
+  const pull = useCallback(async () => {
+    if (!supabase) return;
+    setSyncStatus("syncing");
+    try {
+      const { data, error } = await supabase
+        .from(PROGRESS_TABLE)
+        .select("data")
+        .eq("id", syncCodeRef.current)
+        .maybeSingle();
+      if (error) throw error;
+      const remote = data?.data;
+      if (remote && typeof remote === "object") {
+        // Only apply (and flag) when it actually differs, so the skip-echo flag
+        // doesn't get stuck set when remote == local.
+        if (JSON.stringify(remote) !== JSON.stringify(completedRef.current)) {
+          remoteApplied.current = true;
+          setCompleted(remote as CompletedMap);
+        }
+        setSyncStatus("synced");
+      } else {
+        // No remote row yet — seed it from whatever we have locally.
+        await push(completedRef.current);
+      }
+    } catch {
+      setSyncStatus("offline");
+    }
+  }, [push]);
+
+  // Pull on mount and whenever the sync code changes (e.g. linking a device).
+  useEffect(() => {
+    void pull();
+  }, [syncCode, pull]);
+
+  // Debounced push on user-driven changes.
+  useEffect(() => {
+    if (!supabase) return;
+    if (remoteApplied.current) {
+      remoteApplied.current = false;
+      return;
+    }
+    if (skipFirstPush.current) {
+      skipFirstPush.current = false;
+      return;
+    }
+    const timer = setTimeout(() => void push(completed), PUSH_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [completed, push]);
+
+  // Re-pull when the tab regains focus, to pick up edits from another device.
+  useEffect(() => {
+    if (!supabase) return;
+    const refresh = () => {
+      if (document.visibilityState !== "hidden") void pull();
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [pull]);
 
   const toggleSession = useCallback((weekIdx: number, sessionIdx: number) => {
     const key = sessionKey(weekIdx, sessionIdx);
@@ -78,5 +196,14 @@ export function useProgress(): UseProgress {
     [completed],
   );
 
-  return { completed, toggleSession, setWeekDone, isDone, completedCount };
+  return {
+    completed,
+    toggleSession,
+    setWeekDone,
+    isDone,
+    completedCount,
+    syncCode,
+    setSyncCode,
+    syncStatus,
+  };
 }

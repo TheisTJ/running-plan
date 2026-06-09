@@ -6,21 +6,12 @@ import { Header } from "../Header/Header";
 import { WeekSelector } from "../WeekSelector/WeekSelector";
 import { WeekCard } from "../WeekCard/WeekCard";
 import { Tips } from "../Tips/Tips";
-import { SyncSettings } from "../SyncSettings/SyncSettings";
 import styles from "./RunningPlan.module.css";
 
 const LAST_WEEK = weeks.length - 1;
 
 export function RunningPlan() {
-  const {
-    isDone,
-    toggleSession,
-    setWeekDone,
-    completedCount,
-    syncCode,
-    setSyncCode,
-    syncStatus,
-  } = useProgress();
+  const { isDone, toggleSession, setWeekDone, completedCount } = useProgress();
   const [activeWeek, setActiveWeek] = useState(0);
 
   const totalSessions = useMemo(
@@ -80,12 +71,6 @@ export function RunningPlan() {
         </nav>
 
         <Tips tips={tips} />
-
-        <SyncSettings
-          syncCode={syncCode}
-          setSyncCode={setSyncCode}
-          syncStatus={syncStatus}
-        />
       </div>
     </div>
   );

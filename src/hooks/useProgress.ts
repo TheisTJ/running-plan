@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { PROGRESS_TABLE, supabase } from "../lib/supabase";
-import { useSyncCode } from "./useSyncCode";
+import { PROGRESS_TABLE, SHARED_PROGRESS_ID, supabase } from "../lib/supabase";
 
 const STORAGE_KEY = "running-plan:progress";
 
@@ -40,10 +39,6 @@ export interface UseProgress {
   setWeekDone: (weekIdx: number, sessionCount: number, done: boolean) => void;
   isDone: (weekIdx: number, sessionIdx: number) => boolean;
   completedCount: number;
-  /** This browser's sync code (also the key into the remote store). */
-  syncCode: string;
-  /** Adopt another device's sync code to share its progress. */
-  setSyncCode: (code: string) => void;
   /** Where progress is currently kept (for UI feedback). */
   syncStatus: SyncStatus;
 }
@@ -51,23 +46,19 @@ export interface UseProgress {
 /**
  * Tracks which sessions are completed. Always persists to localStorage so
  * progress survives a reload offline; when Supabase is configured, it also
- * syncs to a remote row keyed by the sync code, so progress follows the user
- * across devices. localStorage is the source of truth when offline / unconfigured.
+ * syncs to a single shared remote row, so every device that opens the site
+ * sees the same progress. localStorage is the source of truth when offline /
+ * unconfigured.
  */
 export function useProgress(): UseProgress {
   const [completed, setCompleted] = useState<CompletedMap>(loadInitial);
-  const { syncCode, setSyncCode } = useSyncCode();
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(
     supabase ? "syncing" : "local",
   );
 
-  // Refs let the stable pull/push callbacks read the latest values without
-  // being torn down and recreated on every change.
-  const syncCodeRef = useRef(syncCode);
+  // A ref lets the stable pull/push callbacks read the latest completed map
+  // without being torn down and recreated on every change.
   const completedRef = useRef(completed);
-  useEffect(() => {
-    syncCodeRef.current = syncCode;
-  }, [syncCode]);
   useEffect(() => {
     completedRef.current = completed;
   }, [completed]);
@@ -93,7 +84,7 @@ export function useProgress(): UseProgress {
     setSyncStatus("syncing");
     try {
       const { error } = await supabase.from(PROGRESS_TABLE).upsert({
-        id: syncCodeRef.current,
+        id: SHARED_PROGRESS_ID,
         data: map,
         updated_at: new Date().toISOString(),
       });
@@ -112,7 +103,7 @@ export function useProgress(): UseProgress {
       const { data, error } = await supabase
         .from(PROGRESS_TABLE)
         .select("data")
-        .eq("id", syncCodeRef.current)
+        .eq("id", SHARED_PROGRESS_ID)
         .maybeSingle();
       if (error) throw error;
       const remote = data?.data;
@@ -133,10 +124,10 @@ export function useProgress(): UseProgress {
     }
   }, [push]);
 
-  // Pull on mount and whenever the sync code changes (e.g. linking a device).
+  // Pull the shared row on mount.
   useEffect(() => {
     void pull();
-  }, [syncCode, pull]);
+  }, [pull]);
 
   // Debounced push on user-driven changes.
   useEffect(() => {
@@ -202,8 +193,6 @@ export function useProgress(): UseProgress {
     setWeekDone,
     isDone,
     completedCount,
-    syncCode,
-    setSyncCode,
     syncStatus,
   };
 }

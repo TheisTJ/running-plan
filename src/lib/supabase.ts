@@ -13,5 +13,8 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 export const supabase: SupabaseClient | null =
   url && anonKey ? createClient(url, anonKey) : null;
 
-/** Table holding one row per sync code: `{ id, data, updated_at }`. */
+/** Table holding the progress row: `{ id, data, updated_at }`. */
 export const PROGRESS_TABLE = "progress";
+
+/** The single row every device reads/writes — this site shows one shared progress. */
+export const SHARED_PROGRESS_ID = "shared";

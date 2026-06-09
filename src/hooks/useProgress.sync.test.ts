@@ -25,9 +25,11 @@ const { from, maybeSingle, upsert } = vi.hoisted(() => {
 vi.mock("../lib/supabase", () => ({
   supabase: { from },
   PROGRESS_TABLE: "progress",
+  SHARED_PROGRESS_ID: "shared",
 }));
 
 import { useProgress } from "./useProgress";
+import { SHARED_PROGRESS_ID } from "../lib/supabase";
 
 describe("useProgress remote sync", () => {
   beforeEach(() => {
@@ -67,7 +69,7 @@ describe("useProgress remote sync", () => {
     await waitFor(() => expect(upsert).toHaveBeenCalled());
     const calls = upsert.mock.calls;
     const lastArg = calls[calls.length - 1][0];
-    expect(lastArg.id).toBe(result.current.syncCode);
+    expect(lastArg.id).toBe(SHARED_PROGRESS_ID);
     expect(lastArg.data).toEqual({ "0-0": true });
   });
 
